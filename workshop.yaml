@@ -1,0 +1,25 @@
+---
+id: openshift_4_workshop
+name: Workshop
+workshop_title: "OpenShift v4 on AWS"
+revision: openshift_4_workshop
+logo: "aws-smile.png"
+vars:
+  WORKSHOP: 2019
+modules:
+  activate:
+  - "labs_lab0_lab0"
+  - "labs_lab1_lab1"
+  - "labs_lab2_lab2"
+  - "labs_lab3_lab3"
+  - "labs_lab4_lab4"
+  - "labs_lab5_lab5"
+  - "labs_lab6_lab6"
+  - "labs_lab7_lab7"
+  - "labs_lab8_lab8"
+  - "labs_lab9_lab9"
+  - "labs_lab10_lab10"
+  - "labs_lab11_lab11"
+  - "labs_lab12_lab12"
+  - "labs_lab13_lab13"
+  

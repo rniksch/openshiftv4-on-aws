@@ -1,0 +1,30 @@
+modules:
+  labs_lab0_lab0:
+    name: Installing Client tools
+  labs_lab1_lab1:
+    name: Confirming connectivity 
+  labs_lab2_lab2:
+    name: Create application from container image
+  labs_lab3_lab3:
+    name: Exploring the cluster
+  labs_lab4_lab4:
+    name: Dynamic scaling
+  labs_lab5_lab5:
+    name: Exploring infrastructure nodes
+  labs_lab6_lab6:
+    name: Exploring the operator hub
+  labs_lab7_lab7:
+    name: Using operators as a developer
+  labs_lab8_lab8:
+    name: Building container images
+  labs_lab9_lab9:
+    name: CICD pipelines
+  labs_lab10_lab10:
+    name: Deploying java applications
+  labs_lab11_lab11:
+    name: User management
+  labs_lab12_lab12:
+    name: Scaling application workloads
+  
+          
+  
