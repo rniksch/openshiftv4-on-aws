@@ -1,0 +1,81 @@
+sudo yum -y update
+sudo yum -y install docker
+sudo yum install -y wget
+sudo yum -y install git
+curl -kLO https://github.com/openshift/origin/releases/download/v3.10.0/openshift-origin-client-tools-v3.10.0-dd10d17-linux-64bit.tar.gz
+tar -xvf openshift-origin-client-tools-v3.10.0-dd10d17-linux-64bit.tar.gz
+cd openshift-origin-client-tools-v3.10.0-dd10d17-linux-64bit
+sudo mv oc /usr/bin
+sudo vi /etc/docker/daemon.json 
+
+### insert "insecure-registries":["172.30.0.0/16"]
+sudo systemctl restart docker
+
+oc cluster up --service-catalog=true --routing-suffix= --public-hostname='34.242.47.20'
+oc cluster up --service-catalog=true --public-hostname='34.242.47.20'
+
+# the openshift cluster should up and running, if issues manifest oc cluster down, the oc cluster up.
+#Using nsenter mounter for OpenShift volumes
+#Using 127.0.0.1 as the server IP
+#Starting OpenShift using openshift/origin:v3.9.0 ...
+#OpenShift server started.
+#
+#The server is accessible via web console at:
+#    https://127.0.0.1:8443
+#
+#You are logged in as:
+#    User:     developer
+#    Password: <any value>
+#
+#To login as administrator:
+#    oc login -u system:admin
+
+git clone https://github.com/rniksch/openshift-on-aws.git
+cd openshift-on-aws.git/labs/awssb
+./deploy_aws_broker.sh
+
+git clone https://github.com/mandusm/summit-2018-container-lab.git
+cd summit-2018-container-lab.git/labs/awssb
+./deploy_aws_broker.sh
+
+sed -ie "s/<account-id>/$(curl -s http://169.254.169.254/latest/meta-data/iam/info/ | grep -oP '\d*(?=\:instance-profile)')/g" aws-servicebroker-secret.yaml
+
+oc create -f aws-servicebroker-secret.yaml -n aws-service-broker
+
+oc rollout latest aws-asb -n aws-service-broker
+
+oc edit configmap -n aws-service-broker
+
+
+   
+   
+   83  vi aws-servicebroker-secret.yaml
+   84  oc replace -f aws-servicebroker-secret.yaml -n aws-service-broker
+   85  oc rollout latest aws-asb -n aws-service-broker
+   86  ls
+   87  cd  summit-2018-container-lab/
+   88  cd labs/
+   89  cd awssb/
+   90  ls
+   91  less aws-servicebroker-secret.yaml
+   92  vi aws-servicebroker-secret.yaml
+   93  oc replace -f aws-servicebroker-secret.yaml -n aws-service-broker
+   94  oc rollout latest aws-asb -n aws-service-broker
+   95  oc get pods -n aws-service-broker
+   96  aws dynamodb put-item --table-name GamesAndBooksCompleted --item '{"Title": {"S": "Small gods"},"Date": {"S": "20180628"},"Platform": {"S": "Book"},"Author": {"S": "Terry Pratchett"}}' --region us-west-2
+   97  kk
+   98  logou
+   99  logout
+  100  error: username sysadmin:admin is invalid for basic aut
+  101  oc login -u system:admin
+  102  oc edit scc anyuid
+  103  ls
+  104  cd summit-2018-container-lab/
+  105  ls
+  106  cd labs
+  107  ls
+  108  cd awssb/
+  109  ls
+  110  cd aws-servicebroker-secret.yaml
+  111  less aws-servicebroker-secret.yaml
+  112  oc edit configmap -n aws-service-broker

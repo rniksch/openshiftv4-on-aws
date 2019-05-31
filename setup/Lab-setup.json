@@ -1,0 +1,189 @@
+{
+"Parameters": {
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair to allow remote access to the environment resources.",
+      "Type": "String"
+    },
+    "InstanceType": {
+      "Description": "Worker EC2 instance",
+      "Type": "String",
+      "Default": "c4.large",
+      "AllowedValues": [
+        "t2.micro",
+        "m1.small",
+        "m1.medium",
+        "m1.large",
+        "m1.xlarge",
+        "m2.xlarge",
+        "m2.2xlarge",
+        "m2.4xlarge",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "c1.xlarge",
+        "cc1.4xlarge",
+        "cc2.8xlarge",
+        "cg1.4xlarge",
+        "c4.large"
+      ]
+    },
+    "SubnetID": {
+      "Description": "ID of the Subnet the instance should be launched in, this will link the instance to the same VPC.",
+      "Type": "List<AWS::EC2::Subnet::Id>"
+      
+    }
+  },
+ 
+"Mappings":{
+    "RegionMap": {
+      "us-east-1": {
+        "Centos": "ami-9887c6e7"
+      },
+      "us-west-2": {
+        "Centos": "ami-3ecc8f46"
+      },
+      "eu-west-1": {
+        "Centos": "ami-3548444c"
+      },
+      "ap-northeast-1": {
+        "Centos": "ami-8e8847f1"
+      },
+      "eu-central-1": {
+        "Centos": "ami-dd3c0f36"
+      }
+    }},
+"Resources":{
+
+"ServiceBrokerCFNServiceRole":
+    {
+  "Type": "AWS::IAM::Role",
+  "Properties": {
+    "AssumeRolePolicyDocument": {
+               "Version" : "2012-10-17",
+               "Statement": [ {
+                  "Effect": "Allow",
+                  "Principal": {
+                     "Service": [ "cloudformation.amazonaws.com" ]
+                  },
+                  "Action": [ "sts:AssumeRole" ]
+               } ]
+            },
+    "Path": "/"
+  }
+},
+
+
+
+
+"ServiceBrokerInstanceRole":
+    {
+  "Type": "AWS::IAM::Role",
+  "Properties": {
+    "AssumeRolePolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "cloudformation:*",
+                "ssm:*",
+                "dynamodb:*",
+                "s3:*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                {"Fn::GetAtt" : ["ServiceBrokerCFNServiceRole", "Arn"] }
+            ],
+            "Effect": "Allow"
+        }
+    ]
+},
+    "Path" : "/"
+  }},
+
+"ServiceBrokerCFNServiceRolePolicy":
+{
+  "Type" : "AWS::IAM::Policy",
+  "Properties" : { 
+  	"PolicyName" : "ServiceBrokerCFNServiceRolePolicy",
+  	"Roles" : [{"Ref":"ServiceBrokerCFNServiceRole"}],
+    "PolicyDocument" : {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "cloudformation:*",
+                "iam:*",
+                "kms:*",
+                "ssm:*",
+                "ec2:*",
+                "lambda:*",
+                "athena:*",
+                "dynamodb:*",
+                "elasticache:*",
+                "elasticmapreduce:*",
+                "rds:*",
+                "redshift:*",
+                "route53:*",
+                "s3:*",
+                "sns:*",
+                "sqs:*",
+                "polly:*",
+                "lex:*",
+                "translate:*",
+                "rekognition:*",
+                "kinesis:*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        }
+    ]
+}
+  }
+},
+"ServiceBrokerInstanceRolePolicy":
+{
+  "Type" : "AWS::IAM::Policy",
+  "Properties" : { 
+  	"PolicyName" : "ServiceBrokerInstanceRolePolicy",
+  	"Roles" : [{"Ref":"ServiceBrokerInstanceRole"}],
+    "PolicyDocument" : {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "cloudformation:*",
+                "ssm:*",
+                "dynamodb:*",
+                "s3:*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                {"Fn::GetAtt" : ["ServiceBrokerCFNServiceRole", "Arn"] }
+            ],
+            "Effect": "Allow"
+        }
+    ]
+}
+  }	
+
+
+}},
+"Outputs":{}
+}

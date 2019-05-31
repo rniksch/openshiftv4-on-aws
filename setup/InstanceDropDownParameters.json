@@ -1,0 +1,222 @@
+{
+  "Description": "Build instance from parameters",
+  "Parameters": {
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair to allow remote access to the environment resources.",
+      "Type": "String"
+    },
+    "InstanceType": {
+      "Description": "Worker EC2 instance",
+      "Type": "String",
+      "Default": "c4.large",
+      "AllowedValues": [
+        "t2.micro",
+        "m1.small",
+        "m1.medium",
+        "m1.large",
+        "m1.xlarge",
+        "m2.xlarge",
+        "m2.2xlarge",
+        "m2.4xlarge",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "c1.xlarge",
+        "cc1.4xlarge",
+        "cc2.8xlarge",
+        "cg1.4xlarge",
+        "c4.large"
+      ]
+    },
+    "SubnetID": {
+      "Description": "ID of the Subnet the instance should be launched in, this will link the instance to the same VPC.",
+      "Type": "List<AWS::EC2::Subnet::Id>"
+      
+    }
+  },
+  "Mappings": {
+    "RegionMap": {
+      "us-east-1": {
+        "Centos": "ami-9887c6e7"
+      },
+      "us-west-2": {
+        "Centos": "ami-3ecc8f46"
+      },
+      "eu-west-1": {
+        "Centos": "ami-3548444c"
+      },
+      "ap-northeast-1": {
+        "Centos": "ami-8e8847f1"
+      },
+      "eu-central-1": {
+        "Centos": "ami-dd3c0f36"
+      }
+    }
+  },
+
+  "Resources": {
+    "ServiceBrokerCFNServiceRole":
+    {
+  "Type": "AWS::IAM::Role",
+  "Properties": {
+    "AssumeRolePolicyDocument": {
+               "Version" : "2012-10-17",
+               "Statement": [ {
+                  "Effect": "Allow",
+                  "Principal": {
+                     "Service": [ "ec2.amazonaws.com" ]
+                  },
+                  "Action": [ "sts:AssumeRole" ]
+               } ]
+            },
+    "Path": "/",
+    "Policies": [{"Ref":"ServiceBrokerCFNServiceRolePolicy"}]
+  }
+},
+"ServiceBrokerInstanceRole":
+    {
+  "Type": "AWS::IAM::Role",
+  "Properties": {
+    "AssumeRolePolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "cloudformation:*",
+                "ssm:*",
+                "dynamodb:*",
+                "s3:*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                {"Fn::GetAtt" : ["ServiceBrokerCFNServiceRole", "Arn"] }
+            ],
+            "Effect": "Allow"
+        }
+    ]
+},
+    "Path" : "/",
+    "Policies": [{"Ref":""}]
+  },
+"ServiceBrokerCFNServiceRolePolicy":
+{
+  "Type" : "AWS::IAM::Policy",
+  "Properties" : { 
+    "PolicyDocument" : {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "cloudformation:*",
+                "iam:*",
+                "kms:*",
+                "ssm:*",
+                "ec2:*",
+                "lambda:*",
+                "athena:*",
+                "dynamodb:*",
+                "elasticache:*",
+                "elasticmapreduce:*",
+                "rds:*",
+                "redshift:*",
+                "route53:*",
+                "s3:*",
+                "sns:*",
+                "sqs:*",
+                "polly:*",
+                "lex:*",
+                "translate:*",
+                "rekognition:*",
+                "kinesis:*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        }
+    ]
+}
+  }
+}},
+"ServiceBrokerInstanceRolePolicy":
+{
+  "Type" : "AWS::IAM::Policy",
+  "Properties" : { 
+    "PolicyDocument" : {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "cloudformation:*",
+                "ssm:*",
+                "dynamodb:*",
+                "s3:*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                {"Fn::GetAtt" : ["ServiceBrokerCFNServiceRole", "Arn"] }
+            ],
+            "Effect": "Allow"
+        }
+    ]
+}
+  },
+"OCPInstanceProfile":
+{
+   "Type": "AWS::IAM::InstanceProfile",
+   "Properties": {
+      "Path": "/",
+      "Roles": [{"Ref":"ServiceBrokerInstanceRole"}]
+   }
+},
+"OCPInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": { 
+          "Fn::FindInMap" : [ 
+            "RegionMap", 
+            { 
+              "Ref" : "AWS::Region" 
+            }, 
+            "Centos"
+          ]
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+             "#!/bin/bash -xe\n",
+             "yum install -y aws-cfn-bootstrap\n",
+
+             "# Install the files and packages from the metadata\n",
+             "/opt/aws/bin/cfn-init -v ",
+             "         --stack ", { "Ref" : "AWS::StackName" },
+             "         --resource OCPInstance ",
+             "         --configsets Install ",
+             "         --region ", { "Ref" : "AWS::Region" }, "\n"
+    ]]}},
+        "SecurityGroupIds": [{ "Fn::Select" : [ "0", {"Ref" : "SGID"} ] }
+        ],
+        "SubnetId":{ "Fn::Select" : [ "0", {"Ref" : "SubnetID"} ] }  
+  
+}},
+"Outputs": {
+    }}
